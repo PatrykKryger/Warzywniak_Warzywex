@@ -9,12 +9,18 @@ const Navbar = ({ currentPage, setCurrentPage }) => {
   const { cart } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navItems = [
+  const baseNav = [
     { id: 'home', label: 'HOME', icon: Home },
     { id: 'produkty', label: 'PRODUKTY', icon: Leaf },
     { id: 'promocje', label: 'PROMOCJE', icon: Tag },
     { id: 'o-nas', label: 'O NAS', icon: Info },
   ];
+
+  if (user) {
+    baseNav.push({ id: 'wsparcie', label: 'WSPARCIE', icon: Info });
+  }
+
+  const navItems = baseNav;
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 

@@ -11,7 +11,7 @@ const ProduktyPage = () => {
     : productsData.filter(p => p.category === filter);
 
   return (
-    <div className="page">
+    <div className="page produkty-page">
       <h1>Nasze Produkty</h1>
       
       <div className="filter-buttons">

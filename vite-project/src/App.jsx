@@ -5,6 +5,7 @@ import Home from './pages/Home.jsx';
 import ProduktyPage from './pages/Produkty.jsx';
 import PromocjePage from './pages/Promocje.jsx';
 import ONasPage from './pages/ONas.jsx';
+import UserSupportPage from './pages/UserSupport.jsx';
 import CartPage from './pages/Cart.jsx';
 import { CartProvider, useCart } from './context/CartContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
@@ -20,6 +21,7 @@ const App = () => {
       case 'produkty': return <ProduktyPage />;
       case 'promocje': return <PromocjePage />;
       case 'o-nas': return <ONasPage />;
+      case 'wsparcie': return <UserSupportPage />;
       case 'koszyk': return <CartPage />;
       default: return <Home setCurrentPage={setCurrentPage} />;
     }

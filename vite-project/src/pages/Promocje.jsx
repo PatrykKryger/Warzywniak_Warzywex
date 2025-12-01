@@ -7,7 +7,7 @@ const PromocjePage = () => {
   const promoProducts = productsData.filter(p => p.promo === true);
 
   return (
-    <div className="page">
+    <div className="page promocje-page">
       <div className="promo-header">
         <h1>Aktualne Promocje</h1>
         <p>Skorzystaj z wyjątkowych okazji na świeże produkty</p>
