@@ -132,8 +132,8 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `login`, `password`, `name`, `mail`, `created_at`) VALUES
-(1, 'admin', 'admin', 'admin', 'pushneex@gmail.com', '0000-00-00 00:00:00');
+INSERT INTO `users` (`id`, `login`, `password`, `name`, `mail`) VALUES
+(1, 'admin', 'admin', 'admin', 'pushneex@gmail.com');
 
 --
 -- Indeksy dla zrzutów tabel
