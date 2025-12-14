@@ -15,12 +15,12 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 # Frontend
-npm install /n
-npm install axios /n
-npm install lucide-react /n
+- npm install 
+- npm install axios 
+- npm install lucide-react 
 # Database
-Import .sql file from /db. Use xampp to host database on port 5000.
+- Import .sql file from /db. Use xampp to host database on port 5000.
 # Backend
-npm install /n
-npm install nodemon /n
-npm install dotenv /n
+- npm install 
+- npm install nodemon 
+- npm install dotenv 
