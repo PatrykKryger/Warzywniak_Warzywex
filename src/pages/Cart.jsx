@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 
-const CartPage = () => {
+const CartPage = ({setCurrentPage}) => {
   const { cart, updateQuantity, removeFromCart, total, clearCart } = useCart();
   const { user } = useAuth();
 
@@ -78,7 +78,7 @@ const CartPage = () => {
             <span>Razem:</span>
             <span>{(total + 15).toFixed(2)} zł</span>
           </div>
-          <button className="checkout-btn" onClick={handleCheckout}>
+          <button className="checkout-btn" onClick={() => setCurrentPage('payment')}>
             Finalizuj zamówienie
           </button>
         </div>
