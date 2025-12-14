@@ -11,6 +11,7 @@ import { CartProvider, useCart } from './context/CartContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import Footer from './components/layout/Footer.jsx';
+import PaymentPage from './pages/Payment.jsx';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -22,7 +23,8 @@ const App = () => {
       case 'promocje': return <PromocjePage />;
       case 'o-nas': return <ONasPage />;
       case 'wsparcie': return <UserSupportPage />;
-      case 'koszyk': return <CartPage />;
+      case 'koszyk': return <CartPage setCurrentPage={setCurrentPage} />;
+      case 'payment': return <PaymentPage />;
       default: return <Home setCurrentPage={setCurrentPage} />;
     }
   };
