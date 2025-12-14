@@ -803,6 +803,7 @@ body {
   margin-top: 1rem;
 }
 
+
 .checkout-btn {
   width: 100%;
   background: var(--green-medium);
@@ -882,6 +883,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+#thanks{
+    height: 400px;
+}
+#pay{
+    height: 400px;
 }
 
 .auth-input {
