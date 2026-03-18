@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ProductCard from '../components/products/ProductCard.jsx';
-import { productsData } from '../components/products/ProductList.jsx';
-
+import { getStoredProducts } from '../utils/productStorage.js';
 
 const PromocjePage = () => {
-  const promoProducts = productsData.filter(p => p.promo === true);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const load = () => setProducts(getStoredProducts());
+    load();
+    window.addEventListener('productsUpdated', load);
+    return () => window.removeEventListener('productsUpdated', load);
+  }, []);
+
+  const promoProducts = products.filter(p => p.promo === true);
 
   return (
     <div className="page promocje-page">

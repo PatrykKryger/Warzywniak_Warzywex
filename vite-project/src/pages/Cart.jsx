@@ -1,21 +1,78 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ShoppingCart, User, Home, Tag, Leaf, Info, Menu, X, Plus, Minus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import Payment from './Payment.jsx';
+import PaymentProcessing from './PaymentProcessing.jsx';
+import OrderSuccess from './OrderSuccess.jsx';
 
 
-const CartPage = () => {
+const CartPage = ({ setCurrentPage }) => {
   const { cart, updateQuantity, removeFromCart, total, clearCart } = useCart();
   const { user } = useAuth();
+  const [checkoutStep, setCheckoutStep] = useState(null); // null, 'payment', 'processing', 'success'
+  const [completedOrder, setCompletedOrder] = useState(null);
 
   const handleCheckout = () => {
     if (!user) {
       alert('Zaloguj się, aby sfinalizować zakup');
       return;
     }
-    alert(`Dziękujemy za zamówienie! Wartość: ${total.toFixed(2)} zł`);
-    clearCart();
+    setCheckoutStep('payment');
   };
+
+  const handlePaymentSubmit = (paymentData) => {
+    const orderId = `WAR-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const order = {
+      id: orderId,
+      createdAt: new Date().toISOString(),
+      items: cart,
+      total: total + 15,
+      status: 'W realizacji',
+      payment: {
+        method: 'Karta kredytowa',
+        card: `**** **** **** ${paymentData.cardNumber.slice(-4)}`,
+      },
+    };
+
+    if (user) {
+      const storedOrders = JSON.parse(localStorage.getItem(`orders_${user.email}`) || '[]');
+      localStorage.setItem(`orders_${user.email}`, JSON.stringify([order, ...storedOrders]));
+      window.dispatchEvent(new Event('ordersUpdated'));
+    }
+
+    setCompletedOrder(order);
+    clearCart();
+
+    setCheckoutStep('processing');
+    setTimeout(() => {
+      setCheckoutStep('success');
+    }, 5000);
+  };
+
+  if (checkoutStep === 'payment') {
+    return (
+      <div className="page">
+        <Payment 
+          total={total + 15} 
+          onSubmit={handlePaymentSubmit}
+        />
+      </div>
+    );
+  }
+
+  if (checkoutStep === 'processing') {
+    return <PaymentProcessing onProcessingComplete={() => setCheckoutStep('success')} />;
+  }
+
+  if (checkoutStep === 'success') {
+    return (
+      <OrderSuccess 
+        setCurrentPage={setCurrentPage} 
+        order={completedOrder}
+      />
+    );
+  }
 
   if (cart.length === 0) {
     return (

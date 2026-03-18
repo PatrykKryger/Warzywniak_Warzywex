@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ProductCard from '../components/products/ProductCard.jsx';
-
-import { productsData } from '../components/products/ProductList.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { getStoredProducts, setStoredProducts } from '../utils/productStorage.js';
 
 const ProduktyPage = () => {
+  const { user } = useAuth();
   const [filter, setFilter] = useState('all');
-  
-  const filteredProducts = filter === 'all' 
-    ? productsData 
-    : productsData.filter(p => p.category === filter);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const load = () => setProducts(getStoredProducts());
+    load();
+
+    const handler = () => load();
+    window.addEventListener('productsUpdated', handler);
+
+    return () => window.removeEventListener('productsUpdated', handler);
+  }, []);
+
+  const handleDelete = (productId) => {
+    const updated = products.filter(p => p.id !== productId);
+    setStoredProducts(updated);
+    setProducts(updated);
+  };
+
+  const filteredProducts = filter === 'all'
+    ? products
+    : products.filter(p => p.category === filter);
+
+  const headerTitle = user?.role === 'employee' ? 'Lista najnowszych produktów Warzywex' : 'Nasze Produkty';
 
   return (
     <div className="page produkty-page">
-      <h1>Nasze Produkty</h1>
+      <div className="promo-header">
+        <h1>{headerTitle}</h1>
+        <p>Odkryj najświeższe warzywa, owoce i przetwory bezpośrednio z naszych gospodarstw</p>
+      </div>
       
       <div className="filter-buttons">
         <button 
@@ -43,7 +66,11 @@ const ProduktyPage = () => {
 
       <div className="products-grid">
         {filteredProducts.map(product => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            onDelete={user?.role === 'employee' ? handleDelete : undefined}
+          />
         ))}
       </div>
     </div>

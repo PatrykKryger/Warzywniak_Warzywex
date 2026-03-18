@@ -12,11 +12,25 @@ const AuthProvider = ({ children }) => {
     if (savedUser) setUser(JSON.parse(savedUser));
   }, []);
 
-  const login = (email, password) => {
+  const login = (email, password, isEmployee = false) => {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const foundUser = users.find(u => u.email === email && u.password === password);
     if (foundUser) {
-      const userWithoutPassword = { email: foundUser.email, name: foundUser.name };
+      const userWithoutPassword = {
+        email: foundUser.email,
+        name: foundUser.name,
+        role: foundUser.role || 'customer',
+        phone: foundUser.phone || '',
+        address: foundUser.address || '',
+        city: foundUser.city || '',
+        postalCode: foundUser.postalCode || '',
+      };
+
+      // Check if trying to login as employee but user is not employee
+      if (isEmployee && userWithoutPassword.role !== 'employee') {
+        return false;
+      }
+
       setUser(userWithoutPassword);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       return true;
@@ -24,10 +38,19 @@ const AuthProvider = ({ children }) => {
     return false;
   };
 
-  const register = (name, email, password) => {
+  const register = (name, email, password, isEmployee = false) => {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     if (users.some(u => u.email === email)) return false;
-    users.push({ name, email, password });
+    users.push({
+      name,
+      email,
+      password,
+      role: isEmployee ? 'employee' : 'customer',
+      phone: '',
+      address: '',
+      city: '',
+      postalCode: '',
+    });
     localStorage.setItem('users', JSON.stringify(users));
     return true;
   };
@@ -37,8 +60,23 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const updateUser = (data) => {
+    setUser(prev => {
+      const updated = { ...prev, ...data };
+      localStorage.setItem('user', JSON.stringify(updated));
+
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const updatedUsers = users.map(u =>
+        u.email === updated.email ? { ...u, ...data } : u
+      );
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+
+      return updated;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthModalOpen, setIsAuthModalOpen }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser, isAuthModalOpen, setIsAuthModalOpen }}>
       {children}
     </AuthContext.Provider>
   );

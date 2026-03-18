@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 const AuthModal = () => {
   const { isAuthModalOpen, setIsAuthModalOpen, login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isEmployee, setIsEmployee] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
@@ -14,22 +15,24 @@ const AuthModal = () => {
     setError('');
 
     if (isLogin) {
-      if (login(formData.email, formData.password)) {
+      if (login(formData.email, formData.password, isEmployee)) {
         setIsAuthModalOpen(false);
         setFormData({ name: '', email: '', password: '' });
+        setIsEmployee(false);
       } else {
-        setError('Nieprawidłowy email lub hasło');
+        setError(isEmployee ? 'Nieprawidłowe dane pracownika' : 'Nieprawidłowy email lub hasło');
       }
     } else {
       if (!formData.name || !formData.email || !formData.password) {
         setError('Wypełnij wszystkie pola');
         return;
       }
-      if (register(formData.name, formData.email, formData.password)) {
+      if (register(formData.name, formData.email, formData.password, isEmployee)) {
         setError('');
-        alert('Rejestracja udana! Możesz się teraz zalogować.');
+        alert(isEmployee ? 'Rejestracja pracownika udana!' : 'Rejestracja udana! Możesz się teraz zalogować.');
         setIsLogin(true);
         setFormData({ name: '', email: '', password: '' });
+        setIsEmployee(false);
       } else {
         setError('Użytkownik o tym emailu już istnieje');
       }
@@ -43,7 +46,7 @@ const AuthModal = () => {
           <X size={24} />
         </button>
 
-        <h2>{isLogin ? 'Zaloguj się' : 'Zarejestruj się'}</h2>
+        <h2>{isLogin ? (isEmployee ? 'Zaloguj się jako pracownik' : 'Zaloguj się') : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}</h2>
 
         <div className="auth-form">
           {!isLogin && (
@@ -72,10 +75,25 @@ const AuthModal = () => {
             required
           />
 
+          <div className="employee-toggle">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isEmployee}
+                onChange={e => setIsEmployee(e.target.checked)}
+              />
+              <span className="checkmark"></span>
+              {!isEmployee 
+                ? (isLogin ? 'Zaloguj się jako pracownik' : 'Zarejestruj jako pracownik')
+                : (isLogin ? 'Zaloguj się jako klient' : 'Zarejestruj się jako klient')
+              }
+            </label>
+          </div>
+
           {error && <div className="error-message">{error}</div>}
 
           <button onClick={handleSubmit} className="auth-submit-btn">
-            {isLogin ? 'Zaloguj się' : 'Zarejestruj się'}
+            {isLogin ? (isEmployee ? 'Zaloguj się jako pracownik' : 'Zaloguj się') : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}
           </button>
         </div>
 

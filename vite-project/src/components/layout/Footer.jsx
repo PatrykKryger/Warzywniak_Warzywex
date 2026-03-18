@@ -68,6 +68,7 @@ const Footer = () => {
             <a href="#privacy">Polityka prywatności</a>
             <a href="#terms">Warunki użytkowania</a>
             <a href="#cookies">Polityka cookies</a>
+            <span className="zioles-link" onClick={() => window.location.href = '/zioles'}>🌿 Ziółex</span>
           </div>
         </div>
       </div>
