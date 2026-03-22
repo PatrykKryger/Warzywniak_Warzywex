@@ -54,14 +54,11 @@ const AppContent = () => {
       case 'promocje': return <PromocjePage />;
       case 'o-nas': return <ONasPage />;
       case 'wsparcie': return <UserSupportPage />;
-<<<<<<< HEAD:vite-project/src/App.jsx
       case 'konto': return <AccountPage />;
       case 'koszyk': return <CartPage setCurrentPage={setCurrentPage} />;
       case 'admin': return <AdminPanel />;
-=======
       case 'koszyk': return <CartPage setCurrentPage={setCurrentPage} />;
       case 'payment': return <PaymentPage />;
->>>>>>> 30d5d3d4ab126a5a04bafdfa80ff7feef8a18d33:src/App.jsx
       default: return <Home setCurrentPage={setCurrentPage} />;
     }
   };

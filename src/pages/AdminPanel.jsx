@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getStoredProducts, setStoredProducts } from '../utils/productStorage.js';
-import { Briefcase, Package, Users, CreditCard, Plus, Edit, Trash2, Tag, ShoppingCart } from 'lucide-react';
+import { Briefcase, Package, Users, CreditCard, Plus, Edit, Trash2, Tag, ShoppingCart, RotateCcw } from 'lucide-react';
 
 const AdminPanel = () => {
   const { user } = useAuth();
@@ -9,6 +9,7 @@ const AdminPanel = () => {
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [returns, setReturns] = useState([]);
   const [userFilter, setUserFilter] = useState('all');
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -36,6 +37,36 @@ const AdminPanel = () => {
     setOrders(allOrders);
   };
 
+  const loadReturns = () => {
+    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    const allReturns = [];
+    storedUsers.forEach(u => {
+      const userReturns = JSON.parse(localStorage.getItem(`returns_${u.email}`) || '[]');
+      allReturns.push(...userReturns.map(r => ({ ...r, userEmail: u.email, userName: u.name })));
+    });
+    setReturns(allReturns);
+  };
+
+  const handleDeleteUser = (email) => {
+    if (email === user.email) {
+      alert('Nie możesz usunąć swojego konta pracownika.');
+      return;
+    }
+
+    if (!window.confirm('Czy na pewno chcesz usunąć tego klienta? Ta operacja jest nieodwracalna.')) return;
+
+    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    const updatedUsers = storedUsers.filter(u => u.email !== email);
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+
+    localStorage.removeItem(`orders_${email}`);
+    localStorage.removeItem(`returns_${email}`);
+
+    loadUsers();
+    loadOrders();
+    loadReturns();
+  };
+
   const loadProducts = () => {
     const stored = getStoredProducts();
     setProducts(stored);
@@ -44,13 +75,18 @@ const AdminPanel = () => {
   useEffect(() => {
     loadUsers();
     loadOrders();
+    loadReturns();
     loadProducts();
 
     const productsHandler = () => loadProducts();
-    const ordersHandler = () => loadOrders();
+    const ordersHandler = () => {
+      loadOrders();
+      loadReturns();
+    };
     const storageHandler = () => {
       loadUsers();
       loadOrders();
+      loadReturns();
       loadProducts();
     };
 
@@ -244,6 +280,13 @@ const AdminPanel = () => {
         >
           <Users size={18} />
           Użytkownicy
+        </button>
+        <button
+          className={activeTab === 'returns' ? 'active' : ''}
+          onClick={() => setActiveTab('returns')}
+        >
+          <RotateCcw size={18} />
+          Zwroty
         </button>
       </div>
 
@@ -450,14 +493,93 @@ const AdminPanel = () => {
                       <p>Adres: {user.address ? `${user.address}, ${user.city} ${user.postalCode}` : 'Nie podano'}</p>
                     </div>
                   )}
+
+                  {user.role === 'customer' && (
+                    <div className="user-actions">
+                      <button
+                        className="btn-delete"
+                        title="Usuń klienta"
+                        onClick={() => handleDeleteUser(user.email)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'returns' && (
+          <div className="returns-management">
+            <h2>Zarządzanie Zwrotami</h2>
+            <div className="returns-list">
+              {returns.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Brak zwrotów</p>
+              ) : (
+                returns.map((returnItem, index) => (
+                  <div key={index} className="return-admin-card">
+                    <div className="return-header">
+                      <div className="return-info">
+                        <h4>{returnItem.userName}</h4>
+                        <p className="return-email">{returnItem.userEmail}</p>
+                      </div>
+                      <div className="return-status">
+                        <span className={`status-badge ${returnItem.status || 'oczekujący'}`}>
+                          {returnItem.status === 'zatwierdzony' ? 'Zatwierdzony' :
+                           returnItem.status === 'odrzucony' ? 'Odrzucony' :
+                           returnItem.status === 'ukończony' ? 'Ukończony' : 'Oczekujący'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="return-details">
+                      <p><strong>ID Zwrotu:</strong> {returnItem.id || 'N/A'}</p>
+                      <p><strong>Zamówienie:</strong> {returnItem.orderId}</p>
+                      <p><strong>Powód:</strong> {returnItem.reason}</p>
+                      <p><strong>Data:</strong> {new Date(returnItem.date).toLocaleString()}</p>
+                    </div>
+                    <div className="return-actions">
+                      <button
+                        className="btn-success"
+                        onClick={() => updateReturnStatus(returnItem.userEmail, index, 'zatwierdzony')}
+                        disabled={returnItem.status === 'zatwierdzony' || returnItem.status === 'odrzucony'}
+                      >
+                        Zatwierdź
+                      </button>
+                      <button
+                        className="btn-reject"
+                        onClick={() => updateReturnStatus(returnItem.userEmail, index, 'odrzucony')}
+                        disabled={returnItem.status === 'zatwierdzony' || returnItem.status === 'odrzucony'}
+                      >
+                        Odrzuć
+                      </button>
+                      <button
+                        className="btn-complete"
+                        onClick={() => updateReturnStatus(returnItem.userEmail, index, 'ukończony')}
+                        disabled={returnItem.status !== 'zatwierdzony'}
+                      >
+                        Ukończ
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
       </div>
     </div>
   );
+
+  function updateReturnStatus(userEmail, returnIndex, newStatus) {
+    const storedReturns = JSON.parse(localStorage.getItem(`returns_${userEmail}`) || '[]');
+    if (storedReturns[returnIndex]) {
+      storedReturns[returnIndex].status = newStatus;
+      localStorage.setItem(`returns_${userEmail}`, JSON.stringify(storedReturns));
+      loadReturns();
+    }
+  }
 };
 
 export default AdminPanel;

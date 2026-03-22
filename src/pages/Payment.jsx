@@ -1,8 +1,8 @@
-<<<<<<< HEAD:vite-project/src/pages/Payment.jsx
 import React, { useState } from 'react';
-import { CreditCard, Calendar, Lock } from 'lucide-react';
+import { CreditCard, Calendar, Lock, Zap, Check } from 'lucide-react';
+import { validateDiscountCode } from '../utils/productStorage.js';
 
-const Payment = ({ total, onSubmit }) => {
+const Payment = ({ total = 0, onSubmit }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     cardNumber: '',
@@ -14,18 +14,20 @@ const Payment = ({ total, onSubmit }) => {
     postalCode: '',
   });
 
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [discountError, setDiscountError] = useState('');
   const [errors, setErrors] = useState({});
+  const [cardFocused, setCardFocused] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let processedValue = value;
 
-    // Format card number with spaces every 4 digits
     if (name === 'cardNumber') {
       processedValue = value.replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
     }
 
-    // Format expiry date (MM/YY)
     if (name === 'expiryDate') {
       processedValue = value.replace(/\D/g, '').slice(0, 4);
       if (processedValue.length >= 2) {
@@ -33,7 +35,6 @@ const Payment = ({ total, onSubmit }) => {
       }
     }
 
-    // Limit CVV to 3-4 digits
     if (name === 'cvv') {
       processedValue = value.replace(/\D/g, '').slice(0, 4);
     }
@@ -43,13 +44,29 @@ const Payment = ({ total, onSubmit }) => {
       [name]: processedValue
     }));
     
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
       }));
     }
+  };
+
+  const handleApplyDiscount = () => {
+    setDiscountError('');
+    const result = validateDiscountCode(discountCode);
+    if (result) {
+      setAppliedDiscount(result);
+    } else {
+      setDiscountError('Nieprawidłowy kod rabatowy');
+    }
+  };
+
+  const calculateDiscountedTotal = () => {
+    if (appliedDiscount) {
+      return total * (1 - appliedDiscount.discount);
+    }
+    return total;
   };
 
   const validateForm = () => {
@@ -75,21 +92,68 @@ const Payment = ({ total, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit({
+        ...formData,
+        discountCode: appliedDiscount ? discountCode : null,
+        discountAmount: appliedDiscount ? total * appliedDiscount.discount : 0,
+        finalTotal: calculateDiscountedTotal()
+      });
     }
+  };
+
+  const getCardType = (number) => {
+    const num = number.replace(/\s/g, '');
+    if (/^4/.test(num)) return 'Visa';
+    if (/^5[1-5]/.test(num)) return 'Mastercard';
+    if (/^3[47]/.test(num)) return 'Amex';
+    return 'Card';
   };
 
   return (
     <div className="page payment-page">
       <div className="payment-container">
         <div className="payment-form-section">
-          <h1>Formularz Płatności</h1>
-          <p className="payment-subtitle">Bezpieczna transakcja za pośrednictwem Warzywex</p>
+          <h1>Bezpieczna Płatność</h1>
+          <p className="payment-subtitle">Potwierdź swoją kartę kredytową</p>
+
+          {/* CREDIT CARD TEMPLATE */}
+          <div className="credit-card-template" style={{
+            background: formData.cardNumber.replace(/\s/g, '').startsWith('4') ? 
+              'linear-gradient(135deg, #2d5016 0%, #3a6b1f 100%)' : 
+              'linear-gradient(135deg, #1a472a 0%, #2d5016 100%)',
+          }}>
+            <div className="card-header">
+              <div className="card-type">{getCardType(formData.cardNumber)}</div>
+              <div className="card-chip"></div>
+            </div>
+
+            <div className="card-number-section">
+              <label>Numer Karty</label>
+              <div className="card-number">
+                {formData.cardNumber || '•••• •••• •••• ••••'}
+              </div>
+            </div>
+
+            <div className="card-bottom">
+              <div className="cardholder">
+                <label>Posiadacz Karty</label>
+                <div>{formData.fullName || 'IMIĘ NAZWISKO'}</div>
+              </div>
+              <div className="card-expiry">
+                <label>Ważna Do</label>
+                <div>{formData.expiryDate || 'MM/YY'}</div>
+              </div>
+              <div className="card-cvv">
+                <label>CVV</label>
+                <div>•••</div>
+              </div>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="payment-form">
             {/* Informacje osobowe */}
             <fieldset className="form-section">
-              <legend>Dane Osobowe</legend>
+              <legend>📋 Dane Osobowe</legend>
               <div className="form-group">
                 <label htmlFor="fullName">Imię i Nazwisko</label>
                 <input
@@ -98,6 +162,7 @@ const Payment = ({ total, onSubmit }) => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
+                  onFocus={() => setCardFocused('fullName')}
                   placeholder="Jan Kowalski"
                   className={errors.fullName ? 'error' : ''}
                 />
@@ -125,21 +190,6 @@ const Payment = ({ total, onSubmit }) => {
                 <CreditCard size={20} />
                 Dane Karty Kredytowej
               </legend>
-              
-              <div className="card-preview">
-                <div className="card-chip"></div>
-                <div className="card-number-display">
-                  {formData.cardNumber || '•••• •••• •••• ••••'}
-                </div>
-                <div className="card-info">
-                  <div className="card-name">
-                    {formData.fullName || 'Imię Nazwisko'}
-                  </div>
-                  <div className="card-expiry">
-                    {formData.expiryDate || 'MM/YY'}
-                  </div>
-                </div>
-              </div>
 
               <div className="form-group">
                 <label htmlFor="cardNumber">Numer Karty</label>
@@ -149,6 +199,7 @@ const Payment = ({ total, onSubmit }) => {
                   name="cardNumber"
                   value={formData.cardNumber}
                   onChange={handleChange}
+                  onFocus={() => setCardFocused('cardNumber')}
                   placeholder="1234 5678 9012 3456"
                   maxLength="19"
                   className={errors.cardNumber ? 'error' : ''}
@@ -168,6 +219,7 @@ const Payment = ({ total, onSubmit }) => {
                     name="expiryDate"
                     value={formData.expiryDate}
                     onChange={handleChange}
+                    onFocus={() => setCardFocused('expiryDate')}
                     placeholder="MM/YY"
                     maxLength="5"
                     className={errors.expiryDate ? 'error' : ''}
@@ -186,6 +238,7 @@ const Payment = ({ total, onSubmit }) => {
                     name="cvv"
                     value={formData.cvv}
                     onChange={handleChange}
+                    onFocus={() => setCardFocused('cvv')}
                     placeholder="•••"
                     maxLength="4"
                     className={errors.cvv ? 'error' : ''}
@@ -244,21 +297,70 @@ const Payment = ({ total, onSubmit }) => {
               </div>
             </fieldset>
 
+            {/* Kod rabatowy */}
+            <fieldset className="form-section">
+              <legend>Kod Rabatowy (Opcjonalnie)</legend>
+              <div className="discount-section">
+                <div className="discount-input-group">
+                  <input
+                    type="text"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    placeholder="Wpisz kod rabatowy"
+                    className={discountError ? 'error' : appliedDiscount ? 'success' : ''}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyDiscount}
+                    className="discount-btn"
+                  >
+                    <Zap size={18} />
+                    Zastosuj
+                  </button>
+                </div>
+                {discountError && <span className="error-text">{discountError}</span>}
+                {appliedDiscount && (
+                  <div className="discount-applied">
+                    <Check size={18} />
+                    <span>{appliedDiscount.description}</span>
+                  </div>
+                )}
+                <p className="discount-hint">💡 Dostępne kody: WELCOME10, SUMMER20, VEGAN15, SPRING25, OWOCE30</p>
+              </div>
+            </fieldset>
+
             <button type="submit" className="payment-submit-btn">
-              Zapłać {total.toFixed(2)} zł
+              Zapłać {calculateDiscountedTotal().toFixed(2)} zł
             </button>
           </form>
         </div>
 
+        {/* Podsumowanie */}
         <div className="payment-summary-section">
           <h2>Podsumowanie Zamówienia</h2>
           <div className="summary-box">
-            <p className="summary-label">Razem do zapłaty:</p>
-            <p className="summary-amount">{total.toFixed(2)} zł</p>
+            <div className="summary-row">
+              <span>Produkty:</span>
+              <span>{total.toFixed(2)} zł</span>
+            </div>
+            <div className="summary-row">
+              <span>Dostawa:</span>
+              <span>15.00 zł</span>
+            </div>
+            {appliedDiscount && (
+              <div className="summary-row discount-row">
+                <span>Rabat ({Math.round(appliedDiscount.discount * 100)}%):</span>
+                <span>-{((total + 15) * appliedDiscount.discount).toFixed(2)} zł</span>
+              </div>
+            )}
             <div className="summary-divider"></div>
+            <div className="summary-total">
+              <span>Razem:</span>
+              <span>{(calculateDiscountedTotal() + 15).toFixed(2)} zł</span>
+            </div>
             <p className="summary-note">
               <Lock size={14} />
-              Twoja transakcja jest w pełni bezpieczna
+              ✅ Twoja transakcja jest w pełni bezpieczna
             </p>
           </div>
         </div>
@@ -268,32 +370,3 @@ const Payment = ({ total, onSubmit }) => {
 };
 
 export default Payment;
-=======
-import { useState } from "react";
-import AddressForm from "../components/payment/AddressForm.jsx";
-import PaymentForm from "../components/payment/PaymentForm.jsx";
-import Acknowledgment from "../components/payment/Acknowledgment.jsx";
-
-const PaymentPage = () => {
-    const [step, setStep] = useState("address"); // address, payment, acknowledgment
-
-    const goToPayment = () => setStep("payment");
-    const goToAcknowledgment = () => setStep("acknowledgment");
-    const goBackToAddress = () => setStep("address");
-
-    return (
-        <div style={{ maxWidth: "500px", margin: "0 auto" }}>
-            {step === "address" && <AddressForm onNext={goToPayment} />}
-            {step === "payment" && (
-                <PaymentForm
-                    onBack={goBackToAddress}
-                    onPaymentComplete={goToAcknowledgment}
-                />
-            )}
-            {step === "acknowledgment" && <Acknowledgment />}
-        </div>
-    );
-};
-
-export default PaymentPage;
->>>>>>> 30d5d3d4ab126a5a04bafdfa80ff7feef8a18d33:src/pages/Payment.jsx

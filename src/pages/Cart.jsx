@@ -6,12 +6,7 @@ import Payment from './Payment.jsx';
 import PaymentProcessing from './PaymentProcessing.jsx';
 import OrderSuccess from './OrderSuccess.jsx';
 
-
-<<<<<<< HEAD:vite-project/src/pages/Cart.jsx
 const CartPage = ({ setCurrentPage }) => {
-=======
-const CartPage = ({setCurrentPage}) => {
->>>>>>> 30d5d3d4ab126a5a04bafdfa80ff7feef8a18d33:src/pages/Cart.jsx
   const { cart, updateQuantity, removeFromCart, total, clearCart } = useCart();
   const { user } = useAuth();
   const [checkoutStep, setCheckoutStep] = useState(null); // null, 'payment', 'processing', 'success'
@@ -139,7 +134,7 @@ const CartPage = ({setCurrentPage}) => {
             <span>Razem:</span>
             <span>{(total + 15).toFixed(2)} zł</span>
           </div>
-          <button className="checkout-btn" onClick={() => setCurrentPage('payment')}>
+          <button className="checkout-btn" onClick={handleCheckout}>
             Finalizuj zamówienie
           </button>
         </div>

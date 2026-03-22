@@ -15,12 +15,12 @@ const AuthModal = () => {
     setError('');
 
     if (isLogin) {
-      if (login(formData.email, formData.password, isEmployee)) {
+      if (login(formData.email, formData.password)) {
         setIsAuthModalOpen(false);
         setFormData({ name: '', email: '', password: '' });
         setIsEmployee(false);
       } else {
-        setError(isEmployee ? 'Nieprawidłowe dane pracownika' : 'Nieprawidłowy email lub hasło');
+        setError('Nieprawidłowy email lub hasło');
       }
     } else {
       if (!formData.name || !formData.email || !formData.password) {
@@ -46,7 +46,7 @@ const AuthModal = () => {
           <X size={24} />
         </button>
 
-        <h2>{isLogin ? (isEmployee ? 'Zaloguj się jako pracownik' : 'Zaloguj się') : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}</h2>
+        <h2>{isLogin ? 'Zaloguj się' : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}</h2>
 
         <div className="auth-form">
           {!isLogin && (
@@ -75,25 +75,24 @@ const AuthModal = () => {
             required
           />
 
-          <div className="employee-toggle">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={isEmployee}
-                onChange={e => setIsEmployee(e.target.checked)}
-              />
-              <span className="checkmark"></span>
-              {!isEmployee 
-                ? (isLogin ? 'Zaloguj się jako pracownik' : 'Zarejestruj jako pracownik')
-                : (isLogin ? 'Zaloguj się jako klient' : 'Zarejestruj się jako klient')
-              }
-            </label>
-          </div>
+          {!isLogin && (
+            <div className="employee-toggle">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isEmployee}
+                  onChange={e => setIsEmployee(e.target.checked)}
+                />
+                <span className="checkmark"></span>
+                Zarejestruj jako pracownik
+              </label>
+            </div>
+          )}
 
           {error && <div className="error-message">{error}</div>}
 
           <button onClick={handleSubmit} className="auth-submit-btn">
-            {isLogin ? (isEmployee ? 'Zaloguj się jako pracownik' : 'Zaloguj się') : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}
+            {isLogin ? 'Zaloguj się' : (isEmployee ? 'Zarejestruj pracownika' : 'Zarejestruj się')}
           </button>
         </div>
 
