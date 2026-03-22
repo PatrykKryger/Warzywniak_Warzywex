@@ -10,6 +10,7 @@ import AccountPage from './pages/Account.jsx';
 import CartPage from './pages/Cart.jsx';
 import AdminPanel from './pages/AdminPanel.jsx';
 import ZiolexApp from './pages/zioles/ZiolexApp.jsx';
+import UnderConstruction from './components/UnderConstruction.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import AuthModal from './components/AuthModal.jsx';
@@ -40,7 +41,7 @@ const AppContent = () => {
 
   const renderPage = () => {
     if (isZiolex) {
-      return <ZiolexApp />;
+      return <UnderConstruction />;
     }
 
     // If someone is logged in as employee, only show admin panel
